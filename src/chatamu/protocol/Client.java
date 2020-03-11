@@ -16,7 +16,7 @@ public class Client {
     private BufferedWriter out;
 
 
-    Client(String server,int port)
+    public Client(String server,int port)
     {
         try {
             this.clientSocket = new Socket();
@@ -63,6 +63,8 @@ public class Client {
                 Scanner scanner = new Scanner(System.in);
                 String message = scanner.nextLine();
                 this.out.write(Protocol.PREFIX.MESSAGE.toString() + message);
+                this.out.newLine();
+                this.out.flush();
             }
         }
         catch(IOException exception) {
