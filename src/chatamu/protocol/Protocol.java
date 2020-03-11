@@ -1,3 +1,5 @@
+package chatamu.protocol;
+
 public class Protocol {
 
     public enum PREFIX {

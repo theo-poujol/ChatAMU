@@ -1,5 +1,9 @@
+package chatamu.protocol;
+
+import chatamu.exception.LoginException;
+import chatamu.exception.MessageException;
+
 import java.io.*;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Scanner;

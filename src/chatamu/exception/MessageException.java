@@ -1,3 +1,5 @@
+package chatamu.exception;
+
 public class MessageException extends Exception {
 
     @Override

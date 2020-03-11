@@ -1,3 +1,5 @@
+package chatamu.exception;
+
 public class LoginException extends Exception {
 
     @Override
