@@ -15,7 +15,6 @@ public class Client {
     private BufferedReader in;
     private BufferedWriter out;
 
-
     public Client(String server,int port)
     {
         try {
@@ -58,13 +57,21 @@ public class Client {
             thread_rcv.start();
 
             //todo Faire un booléen propre (Gérer la terminaison du while proprement)
-            while(true)
+            boolean bool = true;
+            while(bool)
             {
                 Scanner scanner = new Scanner(System.in);
                 String message = scanner.nextLine();
                 this.out.write(Protocol.PREFIX.MESSAGE.toString() + message);
                 this.out.newLine();
                 this.out.flush();
+                if (message.equals("STOP")) {
+                    this.in.close();
+                    this.out.close();
+                    scanner.close();
+                    this.clientSocket.close();
+                    bool = false;
+                }
             }
         }
         catch(IOException exception) {
@@ -80,23 +87,29 @@ public class Client {
         {
             this.in = in;
         }
+
+
         @Override
         public void run() {
             try
             {
-                String response = in.readLine();
-                System.out.println(response);
-                if (Integer.parseInt(response) == Protocol.PREFIX.ERR_MSG.ordinal()) throw new MessageException();
+                while (true)
+                {
+                    String response = in.readLine();
+                    System.out.println(response);
+                    //if (Integer.parseInt(response) == Protocol.PREFIX.ERR_MSG.ordinal()) throw new MessageException();
+                }
 
             }
             catch (IOException e)
             {
-                e.printStackTrace();
+
+                System.out.println("Connexion fermée");
             }
 
-            catch (MessageException exception) {
-                System.out.println(exception.getMessage());
-            }
+//            catch (MessageException exception) {
+//                System.out.println(exception.getMessage());
+//            }
         }
     }
 }
