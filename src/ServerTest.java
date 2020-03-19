@@ -3,7 +3,7 @@ import chatamu.protocol.Server;
 
 import java.io.IOException;
 
-public class Test2 {
+public class ServerTest {
 
     public static void main (String[] args) throws IOException {
         Server server = new Server(12345);

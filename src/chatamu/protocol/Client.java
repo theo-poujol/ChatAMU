@@ -6,6 +6,7 @@ import chatamu.exception.MessageException;
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.channels.SocketChannel;
 import java.util.Scanner;
 
 public class Client {
@@ -14,6 +15,7 @@ public class Client {
     private String pseudo;
     private BufferedReader in;
     private BufferedWriter out;
+    private SocketChannel socket;
 
     public Client(String server,int port)
     {
@@ -33,10 +35,9 @@ public class Client {
     {
         try
         {
+            System.out.println("Veuillez choisir un pseudo...");
             Scanner scanner = new Scanner(System.in);
-            String init_message = this.in.readLine();
-            System.out.println(init_message);
-            this.pseudo = scanner.nextLine();
+            String pseudo = scanner.nextLine();
             this.out.write(this.pseudo);
             String response = this.in.readLine();
             if (Integer.parseInt(response) == Protocol.PREFIX.ERR_LOG.ordinal()) throw new LoginException();
@@ -53,13 +54,26 @@ public class Client {
 
     public void process() {
         try {
-            Thread thread_rcv = new Thread(new HandleReceive(this.in));
+
+//            Scanner scanner = new Scanner(System.in);
+//            String init_message = this.in.readLine();
+//            System.out.println(init_message);
+//            String pseudo = scanner.nextLine();
+//            this.out.write(pseudo);
+//            this.out.newLine();
+//            this.out.flush();
+
+            Thread thread_rcv = new Thread(new HandleReceive(this, this.in));
             thread_rcv.start();
+
+
 
             //todo Faire un booléen propre (Gérer la terminaison du while proprement)
             boolean bool = true;
             while(bool)
             {
+
+
                 Scanner scanner = new Scanner(System.in);
                 String message = scanner.nextLine();
                 this.out.write(Protocol.PREFIX.MESSAGE.toString() + message);
@@ -74,7 +88,7 @@ public class Client {
                 }
             }
         }
-        catch(IOException exception) {
+        catch(Exception exception) {
             exception.printStackTrace();
         }
     }
@@ -82,9 +96,11 @@ public class Client {
 
     private final class HandleReceive implements Runnable {
         private BufferedReader in;
+        private Client client;
 
-        HandleReceive(BufferedReader in)
+        HandleReceive(Client client, BufferedReader in)
         {
+            this.client = client;
             this.in = in;
         }
 
@@ -96,15 +112,14 @@ public class Client {
                 while (true)
                 {
                     String response = in.readLine();
-                    System.out.println(response);
-                    //if (Integer.parseInt(response) == Protocol.PREFIX.ERR_MSG.ordinal()) throw new MessageException();
+                    if (response != null)
+                        System.out.println(response);
                 }
 
             }
             catch (IOException e)
             {
-
-                System.out.println("Connexion fermée");
+                System.out.println("Vous avez quitté le salon.");
             }
 
 //            catch (MessageException exception) {
@@ -112,4 +127,14 @@ public class Client {
 //            }
         }
     }
+
+
+    public void setPseudo(String pseudo) { this.pseudo = pseudo; }
+    public String getPseudo() {
+        return this.pseudo;
+    }
+
+
+    public void setClientSocket(SocketChannel socket) { this.socket = socket; }
+    public SocketChannel getSocket() { return this.socket; }
 }
