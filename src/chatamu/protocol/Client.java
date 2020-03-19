@@ -35,17 +35,21 @@ public class Client {
         try
         {
 
+
+
             System.out.println("Veuillez choisir un pseudo...");
             Scanner scanner = new Scanner(System.in);
             String pseudo = scanner.nextLine();
             this.out.write(pseudo);
-            String response = this.in.readLine();
-            if (Integer.parseInt(response) == Protocol.PREFIX.ERR_LOG.ordinal()) throw new LoginException();
+//            String response = this.in.readLine();
+//            System.out.println("Réponse " + response);
+//            if (Integer.parseInt(response) == Protocol.PREFIX.ERR_LOG.ordinal()) throw new LoginException();
+//            else System.out.println("Vous êtes connecté au salon, vous pouvez désormais écrire.");
         }
-        catch(LoginException exception)
-        {
-            System.out.println(exception.getMessage());
-        }
+//        catch(LoginException exception)
+//        {
+//            System.out.println(exception.getMessage());
+//        }
         catch (IOException exception)
         {
          exception.printStackTrace();
@@ -63,18 +67,28 @@ public class Client {
 //            this.out.newLine();
 //            this.out.flush();
 
+
+
+
             Thread thread_rcv = new Thread(new HandleReceive(this, this.in));
             thread_rcv.start();
 
-
-
             //todo Faire un booléen propre (Gérer la terminaison du while proprement)
             boolean bool = true;
+            boolean queryNickName = false;
             while(bool)
             {
 
-
                 Scanner scanner = new Scanner(System.in);
+                if (!(queryNickName)) {
+                    String message = scanner.nextLine();
+                    this.out.write(Protocol.PREFIX.LOGIN.toString() + message);
+                    this.out.newLine();
+                    this.out.flush();
+                    queryNickName = true;
+                }
+
+
                 String message = scanner.nextLine();
                 if (message != null) {
                     this.out.write(Protocol.PREFIX.MESSAGE.toString() + message);
@@ -115,19 +129,28 @@ public class Client {
                 while (true)
                 {
                     String response = in.readLine();
-                    if (response != null)
+                    if (response != null) {
+                        if (response.equals(Protocol.PREFIX.ERR_LOG.toString())) throw new LoginException();
+                        if (response.equals(Protocol.PREFIX.ERR_MSG.toString())) throw new MessageException();
                         System.out.println(response);
+                    }
+
+
                 }
 
             }
-            catch (IOException e)
+            catch (IOException exception)
             {
                 System.out.println("Vous avez quitté le salon.");
             }
 
-//            catch (MessageException exception) {
-//                System.out.println(exception.getMessage());
-//            }
+            catch (LoginException exception) {
+                System.out.println(exception.getMessage());
+            }
+
+            catch (MessageException exception) {
+                System.out.println(exception.getMessage());
+            }
         }
     }
 

@@ -19,6 +19,10 @@ public class Protocol {
                     return "LOGIN ";
                 case MESSAGE:
                     return "MESSAGE ";
+                case ERR_LOG:
+                    return "_ERR_LOG_C3";
+                case ERR_MSG:
+                    return "_ERR_MSG_C4";
                 default:
                     return "";
             }
