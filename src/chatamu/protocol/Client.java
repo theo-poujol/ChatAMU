@@ -81,8 +81,9 @@ public class Client {
 
                 Scanner scanner = new Scanner(System.in);
                 if (!(queryNickName)) {
-                    String message = scanner.nextLine();
-                    this.out.write(Protocol.PREFIX.LOGIN.toString() + message);
+                    System.out.println("Entrer un pseudo...");
+                    String pseudo = scanner.nextLine();
+                    this.out.write(Protocol.PREFIX.LOGIN.toString() + pseudo);
                     this.out.newLine();
                     this.out.flush();
                     queryNickName = true;
@@ -130,7 +131,9 @@ public class Client {
                 {
                     String response = in.readLine();
                     if (response != null) {
-                        if (response.equals(Protocol.PREFIX.ERR_LOG.toString())) throw new LoginException();
+                        if (response.equals(Protocol.PREFIX.ERR_LOG.toString()))
+                            System.out.println("ERROR");
+//                            throw new LoginException();
                         if (response.equals(Protocol.PREFIX.ERR_MSG.toString())) throw new MessageException();
                         System.out.println(response);
                     }
@@ -144,9 +147,9 @@ public class Client {
                 System.out.println("Vous avez quitté le salon.");
             }
 
-            catch (LoginException exception) {
-                System.out.println(exception.getMessage());
-            }
+//            catch (LoginException exception) {
+//                System.out.println(exception.getMessage());
+//            }
 
             catch (MessageException exception) {
                 System.out.println(exception.getMessage());

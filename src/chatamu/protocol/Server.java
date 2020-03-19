@@ -71,14 +71,34 @@ public class Server {
                 else if (key.isReadable())
                 {
 
+
                     SocketChannel clientSocket = (SocketChannel) key.channel();
+
 
                     if (this.clientPool.get(key) == null) {
                         System.out.println("PSEUDO PAS RENSEIGNE");
                         ByteBuffer nameBuffer = ByteBuffer.allocate(256);
                         clientSocket.read(nameBuffer);
                         String pseudo = new String(nameBuffer.array()).trim();
-                        this.clientPool.put(key, pseudo);
+
+                        if (this.namePool.contains(pseudo)) {
+                            System.out.println("Pseudo déjà dans la salle");
+                            ByteBuffer errorBuffer = ByteBuffer.allocate(256);
+                            String errorLoginMessage = Protocol.PREFIX.ERR_LOG.toString();
+                            ByteBuffer.wrap(errorLoginMessage.getBytes());
+                            errorBuffer.flip();
+                            clientSocket.write(errorBuffer);
+                            errorBuffer.clear();
+                            clientSocket.close();
+                        }
+
+                        else {
+
+                            this.clientPool.put(key, pseudo);
+                            this.namePool.add(pseudo);
+                            System.out.println(pseudo + " vient de rejoindre le salon.");
+                        }
+
                     }
 
                     else {
