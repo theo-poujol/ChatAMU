@@ -34,6 +34,7 @@ public class Client {
     {
         try
         {
+
             System.out.println("Veuillez choisir un pseudo...");
             Scanner scanner = new Scanner(System.in);
             String pseudo = scanner.nextLine();
@@ -75,16 +76,19 @@ public class Client {
 
                 Scanner scanner = new Scanner(System.in);
                 String message = scanner.nextLine();
-                this.out.write(Protocol.PREFIX.MESSAGE.toString() + message);
-                this.out.newLine();
-                this.out.flush();
-                if (message.equals("STOP")) {
-                    this.in.close();
-                    this.out.close();
-                    scanner.close();
-                    this.clientSocket.close();
-                    bool = false;
+                if (message != null) {
+                    this.out.write(Protocol.PREFIX.MESSAGE.toString() + message);
+                    this.out.newLine();
+                    this.out.flush();
+                    if (message.equals("STOP")) {
+                        this.in.close();
+                        this.out.close();
+                        scanner.close();
+                        this.clientSocket.close();
+                        bool = false;
+                    }
                 }
+
             }
         }
         catch(Exception exception) {

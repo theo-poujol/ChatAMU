@@ -1,5 +1,6 @@
 package chatamu.protocol;
 
+import java.io.Console;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -64,29 +65,6 @@ public class Server {
 
 
 
-                    ByteBuffer nameBuffer = ByteBuffer.allocate(256);
-                    clientSocket.read(nameBuffer);
-                    String pseudo = new String(nameBuffer.array()).trim();
-
-                    ByteBuffer errorBuffer;
-
-                    // PSEUDO DEJA PRESENT DANS LA SALLE
-                    if (namePool.contains(pseudo)) {
-                        errorBuffer = ByteBuffer.allocate(2);
-                        String errorLoginMessage = "3";
-                        ByteBuffer.wrap(errorLoginMessage.getBytes());
-                        errorBuffer.flip();
-                        clientSocket.write(errorBuffer);
-                        clientSocket.close();
-                    }
-
-                    else {
-                        this.namePool.add(pseudo);
-                        this.clientPool.put(key, pseudo);
-                        System.out.println(pseudo + " a rejoint de salon");
-                    }
-
-
                 }
 
                 // Si une clé est prête à être lue alors on fait un nouveau channel correspondant à un nouveau client
@@ -94,62 +72,62 @@ public class Server {
                 {
                     SocketChannel clientSocket = (SocketChannel) key.channel();
 
+                    if (this.clientPool.get(key) == null) {
+                        ByteBuffer nameBuffer = ByteBuffer.allocate(256);
+                        clientSocket.read(nameBuffer);
+                        String pseudo = new String(nameBuffer.array()).trim();
+                        System.out.println(pseudo);
+                        if (!pseudo.equals("")) {
 
+                            // PSEUDO DEJA PRESENT DANS LA SALLE
+                            if (namePool.contains(pseudo)) {
+                                System.out.println("Pseudo déjà dans la salle");
+                                ByteBuffer errorBuffer = ByteBuffer.allocate(2);
+                                String errorLoginMessage = "3";
+                                ByteBuffer.wrap(errorLoginMessage.getBytes());
+                                errorBuffer.flip();
+                                clientSocket.write(errorBuffer);
+                                errorBuffer.clear();
+                                clientSocket.close();
+                            }
 
-//                    String pseudoRequest = "Entrer un pseudo svp";
-//                    ByteBuffer buffer = ByteBuffer.wrap(pseudoRequest.getBytes());
-//                    buffer.flip();
-//                    clientSocket.write(buffer);
-//                    buffer.clear();
-//                    buffer = ByteBuffer.allocate(256);
-//                    clientSocket.read(buffer);
-//                    String pseudo = new String(buffer.array()).trim();
-//
-//                    while(this.clientPool.get(pseudo) != null) {
-//                        buffer = ByteBuffer.wrap(pseudoRequest.getBytes());
-//                        buffer.flip();
-//                        clientSocket.write(buffer);
-//                        buffer.clear();
-//                        buffer = ByteBuffer.allocate(256);
-//                        clientSocket.read(buffer);
-//                        pseudo = new String(buffer.array()).trim();
-//                    }
-//
-//                    this.clientPool.put(pseudo, clientSocket);
-//                    buffer = ByteBuffer.allocate(256);
-//                    clientSocket.read(buffer);
-
-
-
-                    ByteBuffer buffer2 = ByteBuffer.allocate(256);
-                    clientSocket.read(buffer2);
-
-                    String msg = new String(buffer2.array()).trim();
-
-
-
-
-                    if (msg.equals("Close")) {
-                        System.out.println("Message reçu: " + msg);
-                        buffer2.flip();
-                        clientSocket.write(buffer2);
-                        clientSocket.close();
-
-                    }
-                    else if (msg.equals("")) {
-                        System.out.println("Connexion fermée");
-                        buffer2.flip();
-                        clientSocket.write(buffer2);
-                        clientSocket.close();
+                            else {
+                                System.out.println("On ajoute le pseudo");
+                                this.namePool.add(pseudo);
+                                this.clientPool.put(key, pseudo);
+                                System.out.println(pseudo + " a rejoint le salon");
+                                clientSocket.close();
+                            }
+                        }
                     }
 
                     else {
-                        System.out.println("Message reçu: " + msg);
-                        buffer2.flip();
-                        clientSocket.write(buffer2);
+
+                        ByteBuffer echoBuffer = ByteBuffer.allocate(256);
+                        clientSocket.read(echoBuffer);
+
+                        String msg = new String(echoBuffer.array()).trim();
+
+                        if (msg.equals("Close")) {
+                            System.out.println("Message reçu: " + msg);
+                            echoBuffer.flip();
+                            clientSocket.write(echoBuffer);
+                            clientSocket.close();
+
+                        }
+                        else if (msg.equals("")) {
+                            System.out.println("Connexion fermée");
+                            echoBuffer.flip();
+                            clientSocket.write(echoBuffer);
+                            clientSocket.close();
+                        }
+
+                        else {
+                            System.out.println("Message reçu: " + msg);
+                            echoBuffer.flip();
+                            clientSocket.write(echoBuffer);
+                        }
                     }
-
-
                 }
                 Iterator.remove();
             }
