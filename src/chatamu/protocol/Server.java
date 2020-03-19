@@ -83,6 +83,7 @@ public class Server {
                     else {
                         this.namePool.add(pseudo);
                         this.clientPool.put(key, pseudo);
+                        System.out.println(pseudo + " a rejoint de salon");
                     }
 
 

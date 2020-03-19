@@ -12,7 +12,6 @@ import java.util.Scanner;
 public class Client {
 
     private Socket clientSocket;
-    private String pseudo;
     private BufferedReader in;
     private BufferedWriter out;
     private SocketChannel socket;
@@ -38,7 +37,7 @@ public class Client {
             System.out.println("Veuillez choisir un pseudo...");
             Scanner scanner = new Scanner(System.in);
             String pseudo = scanner.nextLine();
-            this.out.write(this.pseudo);
+            this.out.write(pseudo);
             String response = this.in.readLine();
             if (Integer.parseInt(response) == Protocol.PREFIX.ERR_LOG.ordinal()) throw new LoginException();
         }
@@ -127,13 +126,6 @@ public class Client {
 //            }
         }
     }
-
-
-    public void setPseudo(String pseudo) { this.pseudo = pseudo; }
-    public String getPseudo() {
-        return this.pseudo;
-    }
-
 
     public void setClientSocket(SocketChannel socket) { this.socket = socket; }
     public SocketChannel getSocket() { return this.socket; }
