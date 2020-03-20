@@ -19,7 +19,6 @@ public class Server {
     private ServerSocketChannel ssc;
     private String hostname;
     private int port;
-    //todo peut être mettre une key ?
     private HashMap<SocketChannel, String> clientPool;
     private HashSet<String> namePool;
 
@@ -57,6 +56,7 @@ public class Server {
                     SocketChannel clientSocket = this.ssc.accept();
                     clientSocket.configureBlocking(false);
                     clientSocket.register(selector, SelectionKey.OP_READ);
+
                     System.out.println("CONNEXION " + clientSocket.getRemoteAddress() + "\n");
 
 
@@ -64,6 +64,7 @@ public class Server {
 
                 // Si une clé est prête à être lue alors on fait un nouveau channel correspondant à un nouveau client
                 else if (key.isReadable()) {
+
 
 
                     SocketChannel clientSocket = (SocketChannel) key.channel();
@@ -78,22 +79,23 @@ public class Server {
 
                             if (this.clientPool.get(clientSocket) == null) {
                                 if (this.namePool.contains(pseudo)) {
-                                    ByteBuffer errorBuffer = ByteBuffer.allocate(256);
                                     String errorLoginMessage = Protocol.PREFIX.ERR_LOG.toString();
-                                    ByteBuffer.wrap(errorLoginMessage.getBytes());
-                                    errorBuffer.flip();
+                                    ByteBuffer errorBuffer = ByteBuffer.wrap(errorLoginMessage.getBytes());
                                     clientSocket.write(errorBuffer);
                                     errorBuffer.clear();
                                     clientSocket.close();
+                                    break;
                                 }
                                 else {
                                     System.out.println(msg);
                                     System.out.println("JOIN " + pseudo);
                                     this.clientPool.put(clientSocket, pseudo);
                                     this.namePool.add(pseudo);
+                                    System.out.println(this.clientPool.get(clientSocket));
                                     clientBuffer.flip();
                                     clientSocket.write(clientBuffer);
-                                    clientSocket.close();
+                                    clientBuffer.clear();
+                                    break;
                                 }
                             }
 
@@ -104,33 +106,36 @@ public class Server {
                             clientBuffer.clear();
                             clientBuffer = ByteBuffer.wrap(formattedMsg.getBytes());
 
+
                             if (containMsg.equals("STOP") || containMsg.equals("")) {
                                 System.out.println("DISCONNECTED " + this.clientPool.get(clientSocket));
                                 this.namePool.remove(this.clientPool.get(clientSocket));
                                 this.clientPool.remove(clientSocket);
                                 clientSocket.close();
+                                break;
                             }
 
                             /* On envoit le message à tous les clients connectés sur le salon */
                             for (SocketChannel client : this.clientPool.keySet()) {
-//                                clientBuffer.flip();
                                 client.write(clientBuffer);
-                                client.close();
                             }
+
+                            break;
 
                         default:
                             //todo Envoyer au client concerné une erreur de message du protocol
 
-                            ByteBuffer errorBuffer = ByteBuffer.allocate(256);
+
                             String errorLoginMessage = Protocol.PREFIX.ERR_MSG.toString();
-                            ByteBuffer.wrap(errorLoginMessage.getBytes());
-                            errorBuffer.flip();
+                            ByteBuffer errorBuffer = ByteBuffer.wrap(errorLoginMessage.getBytes());
                             clientSocket.write(errorBuffer);
                             errorBuffer.clear();
                             clientSocket.close();
+                            break;
 
 
                     }
+
                 }
                 Iterator.remove();
             }
@@ -154,8 +159,7 @@ public class Server {
             case "MESSAGE":
                 return "MESSAGE";
             default:
-                return null;
-
+                return "";
         }
     }
 

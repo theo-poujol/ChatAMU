@@ -95,13 +95,14 @@ public class Client {
                     this.out.write(Protocol.PREFIX.MESSAGE.toString() + message);
                     this.out.newLine();
                     this.out.flush();
-                    if (message.equals("STOP")) {
-                        this.in.close();
-                        this.out.close();
-                        scanner.close();
-                        this.clientSocket.close();
-                        bool = false;
-                    }
+
+//                    if (message.equals("STOP") || message.equals("")) {
+//                        this.in.close();
+//                        this.out.close();
+//                        scanner.close();
+//                        this.clientSocket.close();
+//                        bool = false;
+//                    }
                 }
 
             }
@@ -145,10 +146,12 @@ public class Client {
 
             catch (LoginException exception) {
                 System.out.println(exception.getMessage());
+                System.exit(1);
             }
 
             catch (MessageException exception) {
                 System.out.println(exception.getMessage());
+                System.exit(1);
             }
         }
     }
