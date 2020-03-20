@@ -20,7 +20,7 @@ public class Server {
     private String hostname;
     private int port;
     //todo peut être mettre une key ?
-    private HashMap<SelectionKey, String> clientPool;
+    private HashMap<SocketChannel, String> clientPool;
     private HashSet<String> namePool;
 
 
@@ -67,109 +67,63 @@ public class Server {
 
 
                     SocketChannel clientSocket = (SocketChannel) key.channel();
+                    ByteBuffer clientBuffer = ByteBuffer.allocate(256);
+                    clientSocket.read(clientBuffer);
+                    String msg = new String(clientBuffer.array()).trim();
+                    String command = parseCommand(msg);
+                    switch (command) {
+                        case "LOGIN":
 
+                            String pseudo = parseContain(msg, command.length()+1);
 
-                    if (this.clientPool.get(key) == null) {
-                        ByteBuffer nameBuffer = ByteBuffer.allocate(256);
-                        clientSocket.read(nameBuffer);
-                        String pseudo = new String(nameBuffer.array()).trim();
+                            if (this.clientPool.get(clientSocket) == null) {
+                                if (this.namePool.contains(pseudo)) {
+                                    ByteBuffer errorBuffer = ByteBuffer.allocate(256);
+                                    String errorLoginMessage = Protocol.PREFIX.ERR_LOG.toString();
+                                    ByteBuffer.wrap(errorLoginMessage.getBytes());
+                                    errorBuffer.flip();
+                                    clientSocket.write(errorBuffer);
+                                    errorBuffer.clear();
+                                    clientSocket.close();
+                                }
+                                else {
+                                    System.out.println(msg);
+                                    System.out.println("JOIN " + pseudo);
+                                    this.clientPool.put(clientSocket, pseudo);
+                                    this.namePool.add(pseudo);
+                                    clientBuffer.flip();
+                                    clientSocket.write(clientBuffer);
+                                    clientSocket.close();
+                                }
+                            }
 
-                        if (this.namePool.contains(pseudo)) {
-                            ByteBuffer errorBuffer = ByteBuffer.allocate(256);
-                            String errorLoginMessage = Protocol.PREFIX.ERR_LOG.toString();
-                            ByteBuffer.wrap(errorLoginMessage.getBytes());
-                            errorBuffer.flip();
-                            clientSocket.write(errorBuffer);
-                            errorBuffer.clear();
-                            clientSocket.close();
-                        } else {
-
-                            this.clientPool.put(key, pseudo);
-                            this.namePool.add(pseudo);
-                            System.out.println("JOIN " + pseudo);
-                        }
-
-                    } else {
-                        ByteBuffer echoBuffer = ByteBuffer.allocate(256);
-                        clientSocket.read(echoBuffer);
-
-                        String msg = new String(echoBuffer.array()).trim();
-
-                        if (msg.equals("STOP")) {
-                            System.out.println("DISCONNECTED " + this.clientPool.get(key));
-                            echoBuffer.flip();
-                            clientSocket.write(echoBuffer);
-                            clientSocket.close();
-
-                        } else if (msg.equals("")) {
-                            System.out.println("DISCONNECTED " + this.clientPool.get(key));
-                            echoBuffer.flip();
-                            clientSocket.write(echoBuffer);
-                            clientSocket.close();
-                        } else {
+                        case "MESSAGE":
                             System.out.println(msg);
-                            echoBuffer.flip();
-                            clientSocket.write(echoBuffer);
-                        }
+                            String containMsg = parseContain(msg, command.length()+1);
+                            String formattedMsg = this.clientPool.get(clientSocket) + "> " + containMsg;
+                            clientBuffer.clear();
+                            clientBuffer = ByteBuffer.wrap(formattedMsg.getBytes());
+
+                            if (containMsg.equals("STOP") || containMsg.equals("")) {
+                                System.out.println("DISCONNECTED " + this.clientPool.get(clientSocket));
+                                this.namePool.remove(this.clientPool.get(clientSocket));
+                                this.clientPool.remove(clientSocket);
+                                clientSocket.close();
+                            }
+
+                            /* On envoit le message à tous les clients connectés sur le salon */
+                            for (SocketChannel client : this.clientPool.keySet()) {
+//                                clientBuffer.flip();
+                                client.write(clientBuffer);
+                                client.close();
+                            }
+
+                        default:
+                            //todo Envoyer au client concerné une erreur de message du protocol
+
+
+
                     }
-
-
-//                    if (this.clientPool.get(key) == null) {
-//                        ByteBuffer nameBuffer = ByteBuffer.allocate(256);
-//                        clientSocket.read(nameBuffer);
-//                        String pseudo = new String(nameBuffer.array()).trim();
-//                        System.out.println(pseudo);
-//                        if (!pseudo.equals("")) {
-//
-//                            // PSEUDO DEJA PRESENT DANS LA SALLE
-//                            if (namePool.contains(pseudo)) {
-//                                System.out.println("Pseudo déjà dans la salle");
-//                                ByteBuffer errorBuffer = ByteBuffer.allocate(2);
-//                                String errorLoginMessage = "3";
-//                                ByteBuffer.wrap(errorLoginMessage.getBytes());
-//                                errorBuffer.flip();
-//                                clientSocket.write(errorBuffer);
-//                                errorBuffer.clear();
-//                                clientSocket.close();
-//                            }
-//
-//                            else {
-////                                System.out.println("On ajoute le pseudo");
-////                                this.namePool.add(pseudo);
-////                                this.clientPool.put(key, pseudo);
-//                                System.out.println(pseudo + " a rejoint le salon");
-//                                clientSocket.close();
-//                            }
-//                        }
-//                    }
-//
-//                    else {
-//
-//                        ByteBuffer echoBuffer = ByteBuffer.allocate(256);
-//                        clientSocket.read(echoBuffer);
-//
-//                        String msg = new String(echoBuffer.array()).trim();
-//
-//                        if (msg.equals("Close")) {
-//                            System.out.println("Message reçu: " + msg);
-//                            echoBuffer.flip();
-//                            clientSocket.write(echoBuffer);
-//                            clientSocket.close();
-//
-//                        }
-//                        else if (msg.equals("")) {
-//                            System.out.println("Connexion fermée");
-//                            echoBuffer.flip();
-//                            clientSocket.write(echoBuffer);
-//                            clientSocket.close();
-//                        }
-//
-//                        else {
-//                            System.out.println("Message reçu: " + msg);
-//                            echoBuffer.flip();
-//                            clientSocket.write(echoBuffer);
-//                        }
-//                    }
                 }
                 Iterator.remove();
             }
