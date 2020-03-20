@@ -131,14 +131,10 @@ public class Client {
                 {
                     String response = in.readLine();
                     if (response != null) {
-                        if (response.equals(Protocol.PREFIX.ERR_LOG.toString()))
-                            System.out.println("ERROR");
-//                            throw new LoginException();
-                        if (response.equals(Protocol.PREFIX.ERR_MSG.toString())) throw new MessageException();
-                        System.out.println(response);
+                        if (response.equals(Protocol.PREFIX.ERR_LOG.toString())) throw new LoginException();
+                        else if (response.equals(Protocol.PREFIX.ERR_MSG.toString())) throw new MessageException();
+                        else System.out.println(response);
                     }
-
-
                 }
 
             }
@@ -147,9 +143,9 @@ public class Client {
                 System.out.println("Vous avez quitté le salon.");
             }
 
-//            catch (LoginException exception) {
-//                System.out.println(exception.getMessage());
-//            }
+            catch (LoginException exception) {
+                System.out.println(exception.getMessage());
+            }
 
             catch (MessageException exception) {
                 System.out.println(exception.getMessage());
