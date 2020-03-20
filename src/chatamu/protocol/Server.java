@@ -38,51 +38,43 @@ public class Server {
         Selector selector = Selector.open();
 
         this.ssc = ServerSocketChannel.open();
-        this.ssc.socket().bind(new InetSocketAddress("localhost",this.port));
+        this.ssc.socket().bind(new InetSocketAddress("localhost", this.port));
         this.ssc.configureBlocking(false);
 
         this.ssc.register(selector, this.ssc.validOps());
 
 
-
-        while(true) {
+        while (true) {
             selector.select();
             Set<SelectionKey> Keys = selector.selectedKeys();
             Iterator<SelectionKey> Iterator = Keys.iterator();
 
-            while (Iterator.hasNext())
-            {
+            while (Iterator.hasNext()) {
                 SelectionKey key = Iterator.next();
 
                 // Si une clé est acceptable alors on fait un nouveau channel correspondant à un nouveau client
-                if (key.isAcceptable())
-                {
+                if (key.isAcceptable()) {
                     SocketChannel clientSocket = this.ssc.accept();
                     clientSocket.configureBlocking(false);
                     clientSocket.register(selector, SelectionKey.OP_READ);
-                    System.out.println("Connexion Acceptée: " + clientSocket.getRemoteAddress() + "\n");
-
-
+                    System.out.println("CONNEXION " + clientSocket.getRemoteAddress() + "\n");
 
 
                 }
 
                 // Si une clé est prête à être lue alors on fait un nouveau channel correspondant à un nouveau client
-                else if (key.isReadable())
-                {
+                else if (key.isReadable()) {
 
 
                     SocketChannel clientSocket = (SocketChannel) key.channel();
 
 
                     if (this.clientPool.get(key) == null) {
-                        System.out.println("PSEUDO PAS RENSEIGNE");
                         ByteBuffer nameBuffer = ByteBuffer.allocate(256);
                         clientSocket.read(nameBuffer);
                         String pseudo = new String(nameBuffer.array()).trim();
 
                         if (this.namePool.contains(pseudo)) {
-                            System.out.println("Pseudo déjà dans la salle");
                             ByteBuffer errorBuffer = ByteBuffer.allocate(256);
                             String errorLoginMessage = Protocol.PREFIX.ERR_LOG.toString();
                             ByteBuffer.wrap(errorLoginMessage.getBytes());
@@ -90,48 +82,36 @@ public class Server {
                             clientSocket.write(errorBuffer);
                             errorBuffer.clear();
                             clientSocket.close();
-                        }
-
-                        else {
+                        } else {
 
                             this.clientPool.put(key, pseudo);
                             this.namePool.add(pseudo);
-                            System.out.println(pseudo + " vient de rejoindre le salon.");
+                            System.out.println("JOIN " + pseudo);
                         }
 
-                    }
-
-                    else {
-                        System.out.println("PSEUDO RENSEIGNE");
+                    } else {
                         ByteBuffer echoBuffer = ByteBuffer.allocate(256);
                         clientSocket.read(echoBuffer);
 
                         String msg = new String(echoBuffer.array()).trim();
 
-                        if (msg.equals("Close")) {
-                            System.out.println("Message reçu: " + msg);
+                        if (msg.equals("STOP")) {
+                            System.out.println("DISCONNECTED " + this.clientPool.get(key));
                             echoBuffer.flip();
                             clientSocket.write(echoBuffer);
                             clientSocket.close();
 
-                        }
-                        else if (msg.equals("")) {
-                            System.out.println("Connexion fermée");
+                        } else if (msg.equals("")) {
+                            System.out.println("DISCONNECTED " + this.clientPool.get(key));
                             echoBuffer.flip();
                             clientSocket.write(echoBuffer);
                             clientSocket.close();
-                        }
-
-                        else {
-                            System.out.println("Message reçu: " + msg);
+                        } else {
+                            System.out.println(msg);
                             echoBuffer.flip();
                             clientSocket.write(echoBuffer);
                         }
                     }
-
-
-
-
 
 
 //                    if (this.clientPool.get(key) == null) {
@@ -196,7 +176,29 @@ public class Server {
         }
 
 
-
     }
 
+
+    public String parseCommand(String str) {
+
+        int ispace = str.indexOf(" ");
+        String command = "";
+        if (ispace != -1) {
+            command = str.substring(0, ispace);
+        }
+
+        switch (command) {
+            case "LOGIN":
+                return "LOGIN";
+            case "MESSAGE":
+                return "MESSAGE";
+            default:
+                return null;
+
+        }
+    }
+
+    public String parseContain(String str, int index) {
+        return str.substring(index);
+    }
 }
