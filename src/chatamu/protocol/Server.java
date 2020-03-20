@@ -121,6 +121,13 @@ public class Server {
                         default:
                             //todo Envoyer au client concerné une erreur de message du protocol
 
+                            ByteBuffer errorBuffer = ByteBuffer.allocate(256);
+                            String errorLoginMessage = Protocol.PREFIX.ERR_MSG.toString();
+                            ByteBuffer.wrap(errorLoginMessage.getBytes());
+                            errorBuffer.flip();
+                            clientSocket.write(errorBuffer);
+                            errorBuffer.clear();
+                            clientSocket.close();
 
 
                     }
