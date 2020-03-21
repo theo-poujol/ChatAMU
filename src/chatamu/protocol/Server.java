@@ -58,8 +58,6 @@ public class Server {
                     clientSocket.register(selector, SelectionKey.OP_READ);
 
                     System.out.println("CONNEXION " + clientSocket.getRemoteAddress() + "\n");
-
-
                 }
 
                 // Si une clé est prête à être lue alors on fait un nouveau channel correspondant à un nouveau client
@@ -75,9 +73,7 @@ public class Server {
                     String command = parseCommand(msg);
                     switch (command) {
                         case "LOGIN":
-
                             String pseudo = parseContain(msg, command.length()+1);
-
                             if (this.clientPool.get(clientSocket) == null) {
                                 if (this.namePool.contains(pseudo)) {
                                     String errorLoginMessage = Protocol.PREFIX.ERR_LOG.toString();
@@ -86,11 +82,13 @@ public class Server {
                                     clientSocket.close();
                                     break;
                                 }
+
                                 else {
 //                                    System.out.println(msg);
                                     System.out.println("JOIN " + pseudo);
                                     this.clientPool.put(clientSocket, pseudo);
                                     this.namePool.add(pseudo);
+                                    clientBuffer.flip();
                                     clientSocket.write(clientBuffer);
                                     clientBuffer.clear();
                                     break;
@@ -110,10 +108,12 @@ public class Server {
                                 clientBuffer = ByteBuffer.wrap(Protocol.PREFIX.DCNTD.toString().getBytes());
                                 clientSocket.write(clientBuffer);
                                 clientSocket.close();
+                                break;
                             }
 
                             else {
                                 System.out.println(formattedMsg);
+                                break;
 //                                clientBuffer = ByteBuffer.allocate(formattedMsg.getBytes().length);
 //                                clientBuffer.put(formattedMsg.getBytes());
 //                                clientBuffer.flip();
@@ -122,26 +122,26 @@ public class Server {
 //                                    client.write(clientBuffer);
 //                                }
                             }
-                            clientBuffer = null;
-                            break;
-
 
                         default:
+                            System.out.println("DEFAULT ");
                             //todo Envoyer au client concerné une erreur de message du protocol
 
-                            String errorLoginMessage = Protocol.PREFIX.ERR_MSG.toString();
-                            ByteBuffer errorBuffer = ByteBuffer.wrap(errorLoginMessage.getBytes());
-                            errorBuffer.flip();
-                            clientSocket.write(errorBuffer);
+                            clientBuffer = ByteBuffer.allocate(1024);
+                            clientBuffer.put(Protocol.PREFIX.ERR_MSG.toString().getBytes());
+//                            clientBuffer = ByteBuffer.wrap(Protocol.PREFIX.ERR_MSG.toString().getBytes());
+                            System.out.println("ICI : " + new String(clientBuffer.array()).trim());
+                            clientBuffer.flip();
+                            System.out.println(clientSocket.write(clientBuffer));
+                            clientBuffer.clear();
+//                            while (clientBuffer.hasRemaining()) clientSocket.write(clientBuffer);
                             break;
 
 
                     }
                 }
 
-                else if (key.isWritable()) {
 
-                }
                 Iterator.remove();
             }
         }

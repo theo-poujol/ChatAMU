@@ -15,17 +15,17 @@ public class Protocol {
         public String toString() {
             switch (this) {
                 case ERROR:
-                    return "ERROR ";
+                    return "ERROR";
                 case LOGIN:
                     return "LOGIN ";
                 case MESSAGE:
-                    return "MESSAGE ";
+                    return "MESSAGE";
                 case DCNTD:
-                    return "DISCONNECTED";
+                    return "DISCONNECTED" + (char)10;
                 case ERR_LOG:
-                    return "_ERR_LOG_C3";
+                    return "ERRLOGC3" + (char)10;
                 case ERR_MSG:
-                    return "_ERR_MSG_C4";
+                    return "ERRMSGC4" + (char)10;
                 default:
                     return "";
             }

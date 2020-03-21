@@ -6,7 +6,9 @@ import chatamu.exception.MessageException;
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Client {
@@ -94,19 +96,37 @@ public class Client {
             {
                 while (true)
                 {
-                    String response = in.readLine();
-                    in.reset();
+                    String response = "";
+                    StringBuilder stb = new StringBuilder();
+                    int i;
+
+                    while ((i = in.read()) != 10) {
+                        stb.append((char)i);
+                        response = stb.toString();
+//                        System.out.println(i);
+                        System.out.println(response);
+                    }
+
+                    System.out.println("REP : " + response);
+
                     if (response != null) {
                         if (response.equals(Protocol.PREFIX.ERR_LOG.toString())) {
                             this.client.clientSocket.close();
                             throw new LoginException();
                         }
-                        else if (response.equals(Protocol.PREFIX.ERR_MSG.toString())) throw new MessageException();
+                        else if (response.equals(Protocol.PREFIX.ERR_MSG.toString())) {
+                            System.out.println("ERROR Chatamu");
+//
+                        }
                         else if (response.equals(Protocol.PREFIX.DCNTD.toString())) {
                             this.client.clientSocket.close();
                             System.out.println(response);
                             System.exit(1);
                         }
+                        else System.out.println(response);
+                    }
+                    else {
+                        System.out.println("PUTE");
                     }
                 }
             }
@@ -120,9 +140,9 @@ public class Client {
                 System.exit(1);
             }
 
-            catch (MessageException exception) {
-                System.out.println(exception.getMessage());
-            }
+//            catch (MessageException exception) {
+//                System.out.println(exception.getMessage());
+//            }
         }
     }
 
