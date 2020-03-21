@@ -68,7 +68,8 @@ public class Server {
 
 
                     SocketChannel clientSocket = (SocketChannel) key.channel();
-                    ByteBuffer clientBuffer = ByteBuffer.allocate(256);
+                    ByteBuffer clientBuffer = ByteBuffer.allocate(1024);
+                    clientBuffer.clear();
                     clientSocket.read(clientBuffer);
                     String msg = new String(clientBuffer.array()).trim();
                     String command = parseCommand(msg);
@@ -82,17 +83,14 @@ public class Server {
                                     String errorLoginMessage = Protocol.PREFIX.ERR_LOG.toString();
                                     ByteBuffer errorBuffer = ByteBuffer.wrap(errorLoginMessage.getBytes());
                                     clientSocket.write(errorBuffer);
-                                    errorBuffer.clear();
                                     clientSocket.close();
                                     break;
                                 }
                                 else {
-                                    System.out.println(msg);
+//                                    System.out.println(msg);
                                     System.out.println("JOIN " + pseudo);
                                     this.clientPool.put(clientSocket, pseudo);
                                     this.namePool.add(pseudo);
-                                    System.out.println(this.clientPool.get(clientSocket));
-                                    clientBuffer.flip();
                                     clientSocket.write(clientBuffer);
                                     clientBuffer.clear();
                                     break;
@@ -100,41 +98,48 @@ public class Server {
                             }
 
                         case "MESSAGE":
-                            System.out.println(msg);
+//                            System.out.println(msg);
                             String containMsg = parseContain(msg, command.length()+1);
                             String formattedMsg = this.clientPool.get(clientSocket) + "> " + containMsg;
-                            clientBuffer.clear();
-                            clientBuffer = ByteBuffer.wrap(formattedMsg.getBytes());
+//                            clientBuffer = ByteBuffer.wrap(formattedMsg.getBytes());
 
-
-                            if (containMsg.equals("STOP") || containMsg.equals("")) {
+                            if (containMsg.equals("STOP")) {
                                 System.out.println("DISCONNECTED " + this.clientPool.get(clientSocket));
                                 this.namePool.remove(this.clientPool.get(clientSocket));
                                 this.clientPool.remove(clientSocket);
+                                clientBuffer = ByteBuffer.wrap(Protocol.PREFIX.DCNTD.toString().getBytes());
+                                clientSocket.write(clientBuffer);
                                 clientSocket.close();
-                                break;
                             }
 
-                            /* On envoit le message à tous les clients connectés sur le salon */
-                            for (SocketChannel client : this.clientPool.keySet()) {
-                                client.write(clientBuffer);
+                            else {
+                                System.out.println(formattedMsg);
+//                                clientBuffer = ByteBuffer.allocate(formattedMsg.getBytes().length);
+//                                clientBuffer.put(formattedMsg.getBytes());
+//                                clientBuffer.flip();
+//                                /* On envoit le message à tous les clients connectés sur le salon */
+//                                for (SocketChannel client : this.clientPool.keySet()) {
+//                                    client.write(clientBuffer);
+//                                }
                             }
-
+                            clientBuffer = null;
                             break;
+
 
                         default:
                             //todo Envoyer au client concerné une erreur de message du protocol
 
-
                             String errorLoginMessage = Protocol.PREFIX.ERR_MSG.toString();
                             ByteBuffer errorBuffer = ByteBuffer.wrap(errorLoginMessage.getBytes());
+                            errorBuffer.flip();
                             clientSocket.write(errorBuffer);
-                            errorBuffer.clear();
-                            clientSocket.close();
                             break;
 
 
                     }
+                }
+
+                else if (key.isWritable()) {
 
                 }
                 Iterator.remove();

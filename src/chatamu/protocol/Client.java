@@ -30,45 +30,9 @@ public class Client {
         }
     }
 
-    public void init()
-    {
-        try
-        {
-
-
-
-            System.out.println("Veuillez choisir un pseudo...");
-            Scanner scanner = new Scanner(System.in);
-            String pseudo = scanner.nextLine();
-            this.out.write(pseudo);
-//            String response = this.in.readLine();
-//            System.out.println("Réponse " + response);
-//            if (Integer.parseInt(response) == Protocol.PREFIX.ERR_LOG.ordinal()) throw new LoginException();
-//            else System.out.println("Vous êtes connecté au salon, vous pouvez désormais écrire.");
-        }
-//        catch(LoginException exception)
-//        {
-//            System.out.println(exception.getMessage());
-//        }
-        catch (IOException exception)
-        {
-         exception.printStackTrace();
-        }
-    }
 
     public void process() {
         try {
-
-//            Scanner scanner = new Scanner(System.in);
-//            String init_message = this.in.readLine();
-//            System.out.println(init_message);
-//            String pseudo = scanner.nextLine();
-//            this.out.write(pseudo);
-//            this.out.newLine();
-//            this.out.flush();
-
-
-
 
             Thread thread_rcv = new Thread(new HandleReceive(this, this.in));
             thread_rcv.start();
@@ -131,13 +95,20 @@ public class Client {
                 while (true)
                 {
                     String response = in.readLine();
+                    in.reset();
                     if (response != null) {
-                        if (response.equals(Protocol.PREFIX.ERR_LOG.toString())) throw new LoginException();
+                        if (response.equals(Protocol.PREFIX.ERR_LOG.toString())) {
+                            this.client.clientSocket.close();
+                            throw new LoginException();
+                        }
                         else if (response.equals(Protocol.PREFIX.ERR_MSG.toString())) throw new MessageException();
-                        else System.out.println(response);
+                        else if (response.equals(Protocol.PREFIX.DCNTD.toString())) {
+                            this.client.clientSocket.close();
+                            System.out.println(response);
+                            System.exit(1);
+                        }
                     }
                 }
-
             }
             catch (IOException exception)
             {
@@ -151,7 +122,6 @@ public class Client {
 
             catch (MessageException exception) {
                 System.out.println(exception.getMessage());
-                System.exit(1);
             }
         }
     }
