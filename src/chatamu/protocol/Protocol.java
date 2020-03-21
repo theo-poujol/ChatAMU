@@ -19,13 +19,13 @@ public class Protocol {
                 case LOGIN:
                     return "LOGIN ";
                 case MESSAGE:
-                    return "MESSAGE";
+                    return "MESSAGE ";
                 case DCNTD:
-                    return "DISCONNECTED" + (char)10;
+                    return "DISCONNECTED";
                 case ERR_LOG:
-                    return "ERRLOGC3" + (char)10;
+                    return "ERRLOGC3";
                 case ERR_MSG:
-                    return "ERRMSGC4" + (char)10;
+                    return "ERRMSGC4";
                 default:
                     return "";
             }

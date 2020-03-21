@@ -104,19 +104,18 @@ public class Client {
                         stb.append((char)i);
                         response = stb.toString();
 //                        System.out.println(i);
-                        System.out.println(response);
+//                        System.out.println(response);
                     }
 
-                    System.out.println("REP : " + response);
+//                    System.out.println("REP : " + response);
 
                     if (response != null) {
                         if (response.equals(Protocol.PREFIX.ERR_LOG.toString())) {
                             this.client.clientSocket.close();
                             throw new LoginException();
                         }
-                        else if (response.equals(Protocol.PREFIX.ERR_MSG.toString())) {
+                        else if (response.equals(Protocol.PREFIX.MESSAGE.toString())) {
                             System.out.println("ERROR Chatamu");
-//
                         }
                         else if (response.equals(Protocol.PREFIX.DCNTD.toString())) {
                             this.client.clientSocket.close();

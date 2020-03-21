@@ -77,7 +77,7 @@ public class Server {
                             if (this.clientPool.get(clientSocket) == null) {
                                 if (this.namePool.contains(pseudo)) {
                                     String errorLoginMessage = Protocol.PREFIX.ERR_LOG.toString();
-                                    ByteBuffer errorBuffer = ByteBuffer.wrap(errorLoginMessage.getBytes());
+                                    ByteBuffer errorBuffer = ByteBuffer.wrap((errorLoginMessage+(char)10).getBytes());
                                     clientSocket.write(errorBuffer);
                                     clientSocket.close();
                                     break;
@@ -105,7 +105,7 @@ public class Server {
                                 System.out.println("DISCONNECTED " + this.clientPool.get(clientSocket));
                                 this.namePool.remove(this.clientPool.get(clientSocket));
                                 this.clientPool.remove(clientSocket);
-                                clientBuffer = ByteBuffer.wrap(Protocol.PREFIX.DCNTD.toString().getBytes());
+                                clientBuffer = ByteBuffer.wrap((Protocol.PREFIX.DCNTD.toString()+(char)10).getBytes());
                                 clientSocket.write(clientBuffer);
                                 clientSocket.close();
                                 break;
@@ -124,15 +124,15 @@ public class Server {
                             }
 
                         default:
-                            System.out.println("DEFAULT ");
+//                            System.out.println("DEFAULT ");
                             //todo Envoyer au client concerné une erreur de message du protocol
 
-                            clientBuffer = ByteBuffer.allocate(1024);
-                            clientBuffer.put(Protocol.PREFIX.ERR_MSG.toString().getBytes());
+//                            clientBuffer = ByteBuffer.allocate(1024);
+//                            clientBuffer.put(Protocol.PREFIX.ERR_MSG.toString().getBytes());
 //                            clientBuffer = ByteBuffer.wrap(Protocol.PREFIX.ERR_MSG.toString().getBytes());
-                            System.out.println("ICI : " + new String(clientBuffer.array()).trim());
+//                            System.out.println("ICI : " + new String(clientBuffer.array()).trim());
                             clientBuffer.flip();
-                            System.out.println(clientSocket.write(clientBuffer));
+                            clientSocket.write(clientBuffer);
                             clientBuffer.clear();
 //                            while (clientBuffer.hasRemaining()) clientSocket.write(clientBuffer);
                             break;
