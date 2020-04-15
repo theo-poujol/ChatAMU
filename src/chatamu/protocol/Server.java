@@ -23,6 +23,7 @@ public class Server {
     private HashMap<SocketChannel, String> clientPool;
     private HashSet<String> namePool;
     private HashMap<SocketChannel, ArrayBlockingQueue<ByteBuffer>> queue;
+    private int CAPACITY = 50;
 
 
     // Constructeur on récupère le port du serveur
@@ -91,6 +92,8 @@ public class Server {
                                     clientBuffer.flip();
                                     clientSocket.write(clientBuffer);
                                     clientBuffer.clear();
+
+                                    this.queue.put(clientSocket, new ArrayBlockingQueue<ByteBuffer>(CAPACITY));
                                     break;
                                 }
                             }
@@ -112,6 +115,7 @@ public class Server {
 
                             else {
                                 System.out.println(formattedMsg);
+                                addMsg2Queue(clientBuffer);
                                 break;
 
                                 /* On envoit le message à tous les clients connectés sur le salon */
@@ -123,6 +127,8 @@ public class Server {
                             }
 
                         default:
+
+                            System.out.println("Default");
                             clientBuffer.flip();
                             clientSocket.write(clientBuffer);
                             clientBuffer.clear();
@@ -160,4 +166,12 @@ public class Server {
     public String parseContain(String str, int index) {
         return str.substring(index);
     }
+
+    public void addMsg2Queue(ByteBuffer msgBuffer) {
+        for (SocketChannel clients : this.queue.keySet()) {
+            this.queue.get(clients).add(msgBuffer);
+        }
+    }
 }
+
+
