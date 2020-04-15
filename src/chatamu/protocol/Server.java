@@ -110,6 +110,8 @@ public class Server {
                                 clientBuffer = ByteBuffer.wrap((Protocol.PREFIX.DCNTD.toString()+(char)10).getBytes());
                                 clientSocket.write(clientBuffer);
                                 clientSocket.close();
+                                this.queue.remove(clientSocket);
+                                addMsg2Queue(clientBuffer);
                                 break;
                             }
 
