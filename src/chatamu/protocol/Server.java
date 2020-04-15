@@ -22,7 +22,7 @@ public class Server {
     private int port;
     private HashMap<SocketChannel, String> clientPool;
     private HashSet<String> namePool;
-    private ArrayBlockingQueue<ByteBuffer> byteArray;
+    private HashMap<SocketChannel, ArrayBlockingQueue<ByteBuffer>> queue;
 
 
     // Constructeur on récupère le port du serveur
@@ -33,7 +33,8 @@ public class Server {
         this.port = port;
         this.clientPool = new HashMap<>();
         this.namePool = new HashSet<>();
-        this.byteArray = new ArrayBlockingQueue<ByteBuffer>(1024);
+        this.queue = new HashMap<>();
+
     }
 
     public void run() throws IOException {
