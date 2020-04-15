@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
 
 public class Server {
 
@@ -21,14 +22,18 @@ public class Server {
     private int port;
     private HashMap<SocketChannel, String> clientPool;
     private HashSet<String> namePool;
+    private ArrayBlockingQueue<ByteBuffer> byteArray;
 
 
     // Constructeur on récupère le port du serveur
+    // Server de type Java NIO
+
     public Server(int port) {
         this.hostname = "localhost";
         this.port = port;
         this.clientPool = new HashMap<>();
         this.namePool = new HashSet<>();
+        this.byteArray = new ArrayBlockingQueue<ByteBuffer>(1024);
     }
 
     public void run() throws IOException {
@@ -39,7 +44,6 @@ public class Server {
         this.ssc = ServerSocketChannel.open();
         this.ssc.socket().bind(new InetSocketAddress("localhost", this.port));
         this.ssc.configureBlocking(false);
-
         this.ssc.register(selector, this.ssc.validOps());
 
 
@@ -56,14 +60,10 @@ public class Server {
                     SocketChannel clientSocket = this.ssc.accept();
                     clientSocket.configureBlocking(false);
                     clientSocket.register(selector, SelectionKey.OP_READ);
-
-                    System.out.println("CONNEXION " + clientSocket.getRemoteAddress() + "\n");
                 }
 
                 // Si une clé est prête à être lue alors on fait un nouveau channel correspondant à un nouveau client
                 else if (key.isReadable()) {
-
-
 
                     SocketChannel clientSocket = (SocketChannel) key.channel();
                     ByteBuffer clientBuffer = ByteBuffer.allocate(1024);
@@ -84,7 +84,6 @@ public class Server {
                                 }
 
                                 else {
-//                                    System.out.println(msg);
                                     System.out.println("JOIN " + pseudo);
                                     this.clientPool.put(clientSocket, pseudo);
                                     this.namePool.add(pseudo);
@@ -96,10 +95,9 @@ public class Server {
                             }
 
                         case "MESSAGE":
-//                            System.out.println(msg);
                             String containMsg = parseContain(msg, command.length()+1);
                             String formattedMsg = this.clientPool.get(clientSocket) + "> " + containMsg;
-//                            clientBuffer = ByteBuffer.wrap(formattedMsg.getBytes());
+                            clientBuffer = ByteBuffer.wrap((formattedMsg+(char)10).getBytes());
 
                             if (containMsg.equals("STOP")) {
                                 System.out.println("DISCONNECTED " + this.clientPool.get(clientSocket));
@@ -114,34 +112,22 @@ public class Server {
                             else {
                                 System.out.println(formattedMsg);
                                 break;
-//                                clientBuffer = ByteBuffer.allocate(formattedMsg.getBytes().length);
-//                                clientBuffer.put(formattedMsg.getBytes());
-//                                clientBuffer.flip();
-//                                /* On envoit le message à tous les clients connectés sur le salon */
+
+                                /* On envoit le message à tous les clients connectés sur le salon */
 //                                for (SocketChannel client : this.clientPool.keySet()) {
 //                                    client.write(clientBuffer);
 //                                }
+//                                clientBuffer.clear();
+//                                break;
                             }
 
                         default:
-//                            System.out.println("DEFAULT ");
-                            //todo Envoyer au client concerné une erreur de message du protocol
-
-//                            clientBuffer = ByteBuffer.allocate(1024);
-//                            clientBuffer.put(Protocol.PREFIX.ERR_MSG.toString().getBytes());
-//                            clientBuffer = ByteBuffer.wrap(Protocol.PREFIX.ERR_MSG.toString().getBytes());
-//                            System.out.println("ICI : " + new String(clientBuffer.array()).trim());
                             clientBuffer.flip();
                             clientSocket.write(clientBuffer);
                             clientBuffer.clear();
-//                            while (clientBuffer.hasRemaining()) clientSocket.write(clientBuffer);
                             break;
-
-
                     }
                 }
-
-
                 Iterator.remove();
             }
         }
@@ -150,6 +136,7 @@ public class Server {
     }
 
 
+    // Méthode pour identifier la commande utilisée
     public String parseCommand(String str) {
 
         int ispace = str.indexOf(" ");
@@ -168,6 +155,7 @@ public class Server {
         }
     }
 
+    // Méthode pour extraire le contenu du message d'un commande
     public String parseContain(String str, int index) {
         return str.substring(index);
     }

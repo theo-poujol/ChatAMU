@@ -18,6 +18,8 @@ public class Client {
     private BufferedWriter out;
     private SocketChannel socket;
 
+    // Le constructeur du client nous connecte au serveur
+    // Et initialise ses opérations d'entrées/sorties.
     public Client(String server,int port)
     {
         try {
@@ -32,17 +34,15 @@ public class Client {
         }
     }
 
-
     public void process() {
         try {
 
             Thread thread_rcv = new Thread(new HandleReceive(this, this.in));
             thread_rcv.start();
 
-            //todo Faire un booléen propre (Gérer la terminaison du while proprement)
-            boolean bool = true;
+            // Booléen nous indiquant si la requête de pseudo est déjà effectuée.
             boolean queryNickName = false;
-            while(bool)
+            while(true)
             {
 
                 Scanner scanner = new Scanner(System.in);
@@ -61,16 +61,7 @@ public class Client {
                     this.out.write(Protocol.PREFIX.MESSAGE.toString() + message);
                     this.out.newLine();
                     this.out.flush();
-
-//                    if (message.equals("STOP") || message.equals("")) {
-//                        this.in.close();
-//                        this.out.close();
-//                        scanner.close();
-//                        this.clientSocket.close();
-//                        bool = false;
-//                    }
                 }
-
             }
         }
         catch(Exception exception) {
@@ -78,6 +69,8 @@ public class Client {
         }
     }
 
+    // Classe utilsée pour notre Thread s'occupant de lire les messages reçus.
+    // Nous permettant d'effectuer des entrées/sorties de manière concurrente.
 
     private final class HandleReceive implements Runnable {
         private BufferedReader in;
@@ -89,7 +82,6 @@ public class Client {
             this.in = in;
         }
 
-
         @Override
         public void run() {
             try
@@ -100,51 +92,41 @@ public class Client {
                     StringBuilder stb = new StringBuilder();
                     int i;
 
+                    // 10 est l'ASCII du fin de ligne sous UNIX
+                    // On lit donc la réponse du serveur jusqu'à la fin de ligne
                     while ((i = in.read()) != 10) {
                         stb.append((char)i);
                         response = stb.toString();
-//                        System.out.println(i);
-//                        System.out.println(response);
                     }
 
-//                    System.out.println("REP : " + response);
 
-                    if (response != null) {
-                        if (response.equals(Protocol.PREFIX.ERR_LOG.toString())) {
-                            this.client.clientSocket.close();
-                            throw new LoginException();
-                        }
-                        else if (response.equals(Protocol.PREFIX.MESSAGE.toString())) {
-                            System.out.println("ERROR Chatamu");
-                        }
-                        else if (response.equals(Protocol.PREFIX.DCNTD.toString())) {
-                            this.client.clientSocket.close();
-                            System.out.println(response);
-                            System.exit(1);
-                        }
-                        else System.out.println(response);
+
+                    if (response.equals(Protocol.PREFIX.ERR_LOG.toString())) {
+                        this.client.clientSocket.close();
+                        throw new LoginException();
                     }
-                    else {
-                        System.out.println("PUTE");
+                    else if (response.equals(Protocol.PREFIX.MESSAGE.toString())) {
+                        System.out.println("ERROR Chatamu");
                     }
+                    else if (response.equals(Protocol.PREFIX.DCNTD.toString())) {
+                        this.client.clientSocket.close();
+                        System.out.println(response);
+                        System.exit(1);
+                    }
+                    else System.out.println(response);
                 }
             }
+
             catch (IOException exception)
             {
                 System.out.println("Vous avez quitté le salon.");
             }
 
+            // Exception lancée sur erreur lors de la connexion
             catch (LoginException exception) {
                 System.out.println(exception.getMessage());
                 System.exit(1);
             }
-
-//            catch (MessageException exception) {
-//                System.out.println(exception.getMessage());
-//            }
         }
     }
-
-    public void setClientSocket(SocketChannel socket) { this.socket = socket; }
-    public SocketChannel getSocket() { return this.socket; }
 }
