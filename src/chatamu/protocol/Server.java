@@ -5,10 +5,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.ByteBuffer;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
+import java.nio.channels.*;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -93,8 +90,15 @@ public class Server {
                                     clientSocket.write(clientBuffer);
                                     clientBuffer.clear();
 
+
                                     this.queue.put(clientSocket, new ArrayBlockingQueue<ByteBuffer>(CAPACITY));
-                                    Thread sendingThread = new Thread();
+
+
+                                    MessageCheck messageCheck = new MessageCheck(clientSocket, this.queue);
+                                    Thread sendingThread = new Thread(messageCheck);
+                                    sendingThread.start();
+
+
 
                                     break;
                                 }
@@ -106,12 +110,17 @@ public class Server {
                             clientBuffer = ByteBuffer.wrap((formattedMsg+(char)10).getBytes());
 
                             if (containMsg.equals("STOP")) {
-                                System.out.println("DISCONNECTED " + this.clientPool.get(clientSocket));
+                                pseudo = this.clientPool.get(clientSocket);
+                                System.out.println("DISCONNECTED " + pseudo);
+
+                                clientBuffer = ByteBuffer.wrap((Protocol.PREFIX.DCNTD.toString()+(char)10).getBytes());
+
                                 this.namePool.remove(this.clientPool.get(clientSocket));
                                 this.clientPool.remove(clientSocket);
-                                clientBuffer = ByteBuffer.wrap((Protocol.PREFIX.DCNTD.toString()+(char)10).getBytes());
+
                                 clientSocket.write(clientBuffer);
                                 clientSocket.close();
+
                                 this.queue.remove(clientSocket);
 
                                 break;
@@ -122,9 +131,9 @@ public class Server {
 //                                break;
 
                                 /* On envoit le message à tous les clients connectés sur le salon */
-                                for (SocketChannel client : this.clientPool.keySet()) {
-                                    client.write(clientBuffer);
-                                }
+//                                for (SocketChannel client : this.clientPool.keySet()) {
+//                                    client.write(clientBuffer);
+//                                }
                                 clientBuffer.clear();
 //                                break;
                             }
@@ -132,10 +141,10 @@ public class Server {
 
                         default:
 
-                            System.out.println("Default");
-                            clientBuffer.flip();
-                            clientSocket.write(clientBuffer);
-                            clientBuffer.clear();
+//                            System.out.println("Default");
+//                            clientBuffer.flip();
+//                            clientSocket.write(clientBuffer);
+//                            clientBuffer.clear();
                             break;
                     }
                 }
@@ -198,7 +207,11 @@ public class Server {
                     if (!(this.queue.get(this.client).isEmpty())) {
                         for (ByteBuffer buffer : this.queue.get(this.client)) {
                             try {
-                                this.client.write(buffer);
+                                if (this.client.isConnected()) {
+                                    this.client.write(buffer);
+                                    this.queue.get(this.client).poll();
+                                }
+
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
