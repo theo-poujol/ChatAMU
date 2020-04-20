@@ -35,7 +35,7 @@ public class Server {
 
     }
 
-    public void run() throws IOException {
+    public void run() throws IOException, InterruptedException {
 
 
         Selector selector = Selector.open();
@@ -91,8 +91,9 @@ public class Server {
                                     clientBuffer.clear();
 
 
-                                    this.queue.put(clientSocket, new ArrayBlockingQueue<ByteBuffer>(CAPACITY));
 
+                                    addMsg2Queue(ByteBuffer.wrap(("JOIN " + pseudo +(char)10).getBytes()));
+                                    this.queue.put(clientSocket, new ArrayBlockingQueue<ByteBuffer>(CAPACITY));
 
                                     MessageCheck messageCheck = new MessageCheck(clientSocket, this.queue);
                                     Thread sendingThread = new Thread(messageCheck);
@@ -107,7 +108,7 @@ public class Server {
                         case "MESSAGE":
                             String containMsg = parseContain(msg, command.length()+1);
                             String formattedMsg = this.clientPool.get(clientSocket) + "> " + containMsg;
-                            clientBuffer = ByteBuffer.wrap((formattedMsg+(char)10).getBytes());
+
 
                             if (containMsg.equals("STOP")) {
                                 pseudo = this.clientPool.get(clientSocket);
@@ -122,24 +123,29 @@ public class Server {
                                 clientSocket.close();
 
                                 this.queue.remove(clientSocket);
-
+                                addMsg2Queue(ByteBuffer.wrap(("QUIT " + pseudo +(char)10).getBytes()));
                                 break;
                             }
 
                             else {
                                 System.out.println(formattedMsg);
+                                clientBuffer = ByteBuffer.wrap((formattedMsg+(char)10).getBytes());
+
+                                addMsg2Queue(clientBuffer);
 //                                break;
 
                                 /* On envoit le message à tous les clients connectés sur le salon */
 //                                for (SocketChannel client : this.clientPool.keySet()) {
 //                                    client.write(clientBuffer);
 //                                }
-                                clientBuffer.clear();
+//                                clientBuffer.clear();
 //                                break;
                             }
-                            addMsg2Queue(clientBuffer);
+
+
 
                         default:
+
 
 //                            System.out.println("Default");
 //                            clientBuffer.flip();
@@ -180,9 +186,9 @@ public class Server {
         return str.substring(index);
     }
 
-    public void addMsg2Queue(ByteBuffer msgBuffer) {
+    public void addMsg2Queue(ByteBuffer msgBuffer) throws InterruptedException {
         for (SocketChannel clients : this.queue.keySet()) {
-            this.queue.get(clients).add(msgBuffer);
+            this.queue.get(clients).put(msgBuffer);
         }
     }
 
@@ -209,7 +215,8 @@ public class Server {
                             try {
                                 if (this.client.isConnected()) {
                                     this.client.write(buffer);
-                                    this.queue.get(this.client).poll();
+                                    System.out.println("SEND : " + new String(buffer.array()).trim());
+                                    this.queue.get(this.client).remove(buffer);
                                 }
 
                             } catch (IOException e) {
