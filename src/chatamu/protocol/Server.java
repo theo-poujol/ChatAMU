@@ -94,6 +94,8 @@ public class Server {
                                     clientBuffer.clear();
 
                                     this.queue.put(clientSocket, new ArrayBlockingQueue<ByteBuffer>(CAPACITY));
+                                    Thread sendingThread = new Thread();
+
                                     break;
                                 }
                             }
@@ -111,22 +113,22 @@ public class Server {
                                 clientSocket.write(clientBuffer);
                                 clientSocket.close();
                                 this.queue.remove(clientSocket);
-                                addMsg2Queue(clientBuffer);
+
                                 break;
                             }
 
                             else {
                                 System.out.println(formattedMsg);
-                                addMsg2Queue(clientBuffer);
-                                break;
+//                                break;
 
                                 /* On envoit le message à tous les clients connectés sur le salon */
-//                                for (SocketChannel client : this.clientPool.keySet()) {
-//                                    client.write(clientBuffer);
-//                                }
-//                                clientBuffer.clear();
+                                for (SocketChannel client : this.clientPool.keySet()) {
+                                    client.write(clientBuffer);
+                                }
+                                clientBuffer.clear();
 //                                break;
                             }
+                            addMsg2Queue(clientBuffer);
 
                         default:
 
@@ -172,6 +174,41 @@ public class Server {
     public void addMsg2Queue(ByteBuffer msgBuffer) {
         for (SocketChannel clients : this.queue.keySet()) {
             this.queue.get(clients).add(msgBuffer);
+        }
+    }
+
+
+
+
+    private class MessageCheck implements Runnable {
+
+        SocketChannel client;
+        private HashMap<SocketChannel, ArrayBlockingQueue<ByteBuffer>> queue;
+
+        private MessageCheck(SocketChannel client, HashMap<SocketChannel, ArrayBlockingQueue<ByteBuffer>> queue) {
+            this.client = client;
+            this.queue = queue;
+        }
+
+        @Override
+        public void run() {
+            while (true) {
+
+                if (this.queue.get(this.client) != null) {
+                    if (!(this.queue.get(this.client).isEmpty())) {
+                        for (ByteBuffer buffer : this.queue.get(this.client)) {
+                            try {
+                                this.client.write(buffer);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                }
+
+                else break;
+
+            }
         }
     }
 }
