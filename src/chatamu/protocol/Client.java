@@ -37,14 +37,17 @@ public class Client {
     public void process() {
         try {
 
+
             Thread thread_rcv = new Thread(new HandleReceive(this, this.in));
             thread_rcv.start();
+
 
             // Booléen nous indiquant si la requête de pseudo est déjà effectuée.
             boolean queryNickName = false;
             while(true)
             {
 
+                System.out.println("ETAT THREAD : " + thread_rcv.getState().name());
                 Scanner scanner = new Scanner(System.in);
                 if (!(queryNickName)) {
                     System.out.println("Entrer un pseudo...");
@@ -87,7 +90,9 @@ public class Client {
             try
             {
                 while (true)
+
                 {
+
                     String response = "";
                     StringBuilder stb = new StringBuilder();
                     int i;
@@ -95,11 +100,31 @@ public class Client {
                     // 10 est l'ASCII du fin de ligne sous UNIX
                     // On lit donc la réponse du serveur jusqu'à la fin de ligne
                     while ((i = in.read()) != 10) {
+                        System.out.println("IL Y A : " + (char)i);
                         stb.append((char)i);
                         response = stb.toString();
                     }
 
+//                    while  ((response = this.in.readLine()) != null) {
+//
+//                        if (response.equals(Protocol.PREFIX.ERR_LOG.toString())) {
+//                            this.client.clientSocket.close();
+//                            throw new LoginException();
+//                        }
+//                        else if (response.equals(Protocol.PREFIX.MESSAGE.toString())) {
+//                            System.out.println("ERROR Chatamu");
+//                        }
+//                        else if (response.equals(Protocol.PREFIX.DCNTD.toString())) {
+//                            this.client.clientSocket.close();
+//                            System.out.println(response);
+//                            System.exit(1);
+//                        }
+//                        else System.out.println("Je recois : " + response);
+//                        System.out.println("JE LIS");
+//                    }
 
+                    if (response.equals("")) System.out.println("CEST NULL");
+                    else System.out.println("CEST PAS NULL");
 
                     if (response.equals(Protocol.PREFIX.ERR_LOG.toString())) {
                         this.client.clientSocket.close();
@@ -113,7 +138,7 @@ public class Client {
                         System.out.println(response);
                         System.exit(1);
                     }
-                    else System.out.println(response);
+                    else System.out.println("Je recois : " + response);
                 }
             }
 

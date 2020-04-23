@@ -20,7 +20,7 @@ public class Server {
     private HashMap<SocketChannel, String> clientPool;
     private HashSet<String> namePool;
     private HashMap<SocketChannel, ArrayBlockingQueue<ByteBuffer>> queue;
-    private int CAPACITY = 50;
+    private int CAPACITY = 1024;
 
 
     // Constructeur on récupère le port du serveur
@@ -92,7 +92,8 @@ public class Server {
 
 
 
-                                    addMsg2Queue(ByteBuffer.wrap(("JOIN " + pseudo +(char)10).getBytes()));
+                                    clientBuffer = ByteBuffer.wrap(("JOIN " + pseudo +(char)10).getBytes());
+                                    addMsg2Queue(clientBuffer);
                                     this.queue.put(clientSocket, new ArrayBlockingQueue<ByteBuffer>(CAPACITY));
 
                                     MessageCheck messageCheck = new MessageCheck(clientSocket, this.queue);
@@ -116,6 +117,7 @@ public class Server {
 
                                 clientBuffer = ByteBuffer.wrap((Protocol.PREFIX.DCNTD.toString()+(char)10).getBytes());
 
+
                                 this.namePool.remove(this.clientPool.get(clientSocket));
                                 this.clientPool.remove(clientSocket);
 
@@ -123,16 +125,16 @@ public class Server {
                                 clientSocket.close();
 
                                 this.queue.remove(clientSocket);
-                                addMsg2Queue(ByteBuffer.wrap(("QUIT " + pseudo +(char)10).getBytes()));
+
+                                clientBuffer = ByteBuffer.wrap(("QUIT " + pseudo +(char)10).getBytes());
+                                addMsg2Queue(clientBuffer);
                                 break;
                             }
 
                             else {
                                 System.out.println(formattedMsg);
                                 clientBuffer = ByteBuffer.wrap((formattedMsg+(char)10).getBytes());
-
                                 addMsg2Queue(clientBuffer);
-//                                break;
 
                                 /* On envoit le message à tous les clients connectés sur le salon */
 //                                for (SocketChannel client : this.clientPool.keySet()) {
@@ -207,30 +209,38 @@ public class Server {
 
         @Override
         public void run() {
-            while (true) {
 
+
+            while (true) {
                 if (this.queue.get(this.client) != null) {
+
                     if (!(this.queue.get(this.client).isEmpty())) {
+                        System.out.println("TAILLE : " + this.queue.get(this.client).size());
                         for (ByteBuffer buffer : this.queue.get(this.client)) {
                             try {
-                                if (this.client.isConnected()) {
-                                    this.client.write(buffer);
-                                    System.out.println("SEND : " + new String(buffer.array()).trim());
-                                    this.queue.get(this.client).remove(buffer);
-                                }
+//                                if (this.client.isConnected()) {
+////                                    this.client.write(buffer);
+////                                    System.out.println("SEND : " + new String(buffer.array()).trim());
+////                                    this.queue.get(this.client).remove(buffer);
+////                                }
+
+                                System.out.println(this.client);
+                                this.client.write(buffer);
+                                System.out.println("SEND : " + new String(buffer.array()).trim());
+                                this.queue.get(this.client).remove(buffer);
 
                             } catch (IOException e) {
+                                System.out.println("JFEOEQOIJQEFOIQJFO");
                                 e.printStackTrace();
                             }
                         }
+
                     }
                 }
-
-                else break;
-
             }
         }
     }
 }
+
 
 
