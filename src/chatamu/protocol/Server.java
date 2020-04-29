@@ -199,12 +199,12 @@ public class Server {
 
     private class MessageCheck implements Runnable {
 
-        SocketChannel client;
-        private HashMap<SocketChannel, ArrayBlockingQueue<ByteBuffer>> queue;
+        private SocketChannel client;
+        private ArrayBlockingQueue<ByteBuffer> Clientqueue;
 
         private MessageCheck(SocketChannel client, HashMap<SocketChannel, ArrayBlockingQueue<ByteBuffer>> queue) {
             this.client = client;
-            this.queue = queue;
+            this.Clientqueue = queue.get(this.client);
         }
 
         @Override
@@ -212,29 +212,18 @@ public class Server {
 
 
             while (true) {
-                if (this.queue.get(this.client) != null) {
+                if (!(this.Clientqueue.isEmpty())) {
+                    for (ByteBuffer buffer : this.Clientqueue) {
+                        try {
+                            System.out.println(this.client);
+                            this.client.write(buffer);
+                            System.out.println("SEND : " + new String(buffer.array()).trim());
+                            this.Clientqueue.remove(buffer);
 
-                    if (!(this.queue.get(this.client).isEmpty())) {
-                        System.out.println("TAILLE : " + this.queue.get(this.client).size());
-                        for (ByteBuffer buffer : this.queue.get(this.client)) {
-                            try {
-//                                if (this.client.isConnected()) {
-////                                    this.client.write(buffer);
-////                                    System.out.println("SEND : " + new String(buffer.array()).trim());
-////                                    this.queue.get(this.client).remove(buffer);
-////                                }
-
-                                System.out.println(this.client);
-                                this.client.write(buffer);
-                                System.out.println("SEND : " + new String(buffer.array()).trim());
-                                this.queue.get(this.client).remove(buffer);
-
-                            } catch (IOException e) {
-                                System.out.println("JFEOEQOIJQEFOIQJFO");
-                                e.printStackTrace();
-                            }
+                        } catch (IOException e) {
+                            System.out.println("JFEOEQOIJQEFOIQJFO");
+                            e.printStackTrace();
                         }
-
                     }
                 }
             }
