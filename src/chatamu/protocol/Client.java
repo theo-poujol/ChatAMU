@@ -47,7 +47,6 @@ public class Client {
             while(true)
             {
 
-                System.out.println("ETAT THREAD : " + thread_rcv.getState().name());
                 Scanner scanner = new Scanner(System.in);
                 if (!(queryNickName)) {
                     System.out.println("Entrer un pseudo...");
@@ -100,7 +99,7 @@ public class Client {
                     // 10 est l'ASCII du fin de ligne sous UNIX
                     // On lit donc la réponse du serveur jusqu'à la fin de ligne
                     while ((i = in.read()) != 10) {
-                        System.out.println("IL Y A : " + (char)i);
+//                        System.out.println("IL Y A : " + (char)i);
                         stb.append((char)i);
                         response = stb.toString();
                     }
@@ -122,9 +121,6 @@ public class Client {
 //                        else System.out.println("Je recois : " + response);
 //                        System.out.println("JE LIS");
 //                    }
-
-                    if (response.equals("")) System.out.println("CEST NULL");
-                    else System.out.println("CEST PAS NULL");
 
                     if (response.equals(Protocol.PREFIX.ERR_LOG.toString())) {
                         this.client.clientSocket.close();

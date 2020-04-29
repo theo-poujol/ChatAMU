@@ -41,7 +41,7 @@ public class Server {
         Selector selector = Selector.open();
 
         this.ssc = ServerSocketChannel.open();
-        this.ssc.socket().bind(new InetSocketAddress("localhost", this.port));
+        this.ssc.socket().bind(new InetSocketAddress("127.0.0.1", this.port));
         this.ssc.configureBlocking(false);
         this.ssc.register(selector, this.ssc.validOps());
 
@@ -88,7 +88,7 @@ public class Server {
                                     this.namePool.add(pseudo);
                                     clientBuffer.flip();
                                     clientSocket.write(clientBuffer);
-                                    clientBuffer.clear();
+//                                    clientBuffer.clear();
 
 
 
@@ -153,7 +153,7 @@ public class Server {
 //                            clientBuffer.flip();
 //                            clientSocket.write(clientBuffer);
 //                            clientBuffer.clear();
-                            break;
+//                            break;
                     }
                 }
                 Iterator.remove();
