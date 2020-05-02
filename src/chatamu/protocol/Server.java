@@ -71,6 +71,8 @@ public class Server {
                     String msg = new String(clientBuffer.array()).trim();
                     String command = parseCommand(msg);
                     switch (command) {
+
+
                         case "LOGIN":
                             String pseudo = parseContain(msg, command.length()+1);
                             if (this.clientPool.get(clientSocket) == null) {
@@ -88,9 +90,6 @@ public class Server {
                                     this.namePool.add(pseudo);
                                     clientBuffer.flip();
                                     clientSocket.write(clientBuffer);
-//                                    clientBuffer.clear();
-
-
 
                                     clientBuffer = ByteBuffer.wrap(("JOIN " + pseudo +(char)10).getBytes());
                                     addMsg2Queue(clientBuffer);
@@ -99,9 +98,6 @@ public class Server {
                                     MessageCheck messageCheck = new MessageCheck(clientSocket, this.queue);
                                     Thread sendingThread = new Thread(messageCheck);
                                     sendingThread.start();
-
-
-
                                     break;
                                 }
                             }
@@ -135,25 +131,13 @@ public class Server {
                                 System.out.println(formattedMsg);
                                 clientBuffer = ByteBuffer.wrap((formattedMsg+(char)10).getBytes());
                                 addMsg2Queue(clientBuffer);
-
-                                /* On envoit le message à tous les clients connectés sur le salon */
-//                                for (SocketChannel client : this.clientPool.keySet()) {
-//                                    client.write(clientBuffer);
-//                                }
-//                                clientBuffer.clear();
-//                                break;
+                                break;
                             }
 
 
 
                         default:
-
-
-//                            System.out.println("Default");
-//                            clientBuffer.flip();
-//                            clientSocket.write(clientBuffer);
-//                            clientBuffer.clear();
-//                            break;
+                            break;
                     }
                 }
                 Iterator.remove();

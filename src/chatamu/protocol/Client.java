@@ -59,6 +59,7 @@ public class Client {
 
 
                 String message = scanner.nextLine();
+
                 if (message != null) {
                     this.out.write(Protocol.PREFIX.MESSAGE.toString() + message);
                     this.out.newLine();
@@ -93,48 +94,23 @@ public class Client {
                 {
 
                     String response = "";
-                    StringBuilder stb = new StringBuilder();
-                    int i;
+                    while  ((response = this.in.readLine()) != null) {
 
-                    // 10 est l'ASCII du fin de ligne sous UNIX
-                    // On lit donc la réponse du serveur jusqu'à la fin de ligne
-                    while ((i = in.read()) != 10) {
-//                        System.out.println("IL Y A : " + (char)i);
-                        stb.append((char)i);
-                        response = stb.toString();
+                        if (response.equals(Protocol.PREFIX.ERR_LOG.toString())) {
+                            this.client.clientSocket.close();
+                            throw new LoginException();
+                        }
+                        else if (response.equals(Protocol.PREFIX.MESSAGE.toString())) {
+                            System.out.println("ERROR Chatamu");
+                        }
+                        else if (response.equals(Protocol.PREFIX.DCNTD.toString())) {
+                            this.client.clientSocket.close();
+                            System.out.println(response);
+                            System.exit(1);
+                        }
+                        else System.out.println("Je recois : " + response);
+                        System.out.println("JE LIS");
                     }
-
-//                    while  ((response = this.in.readLine()) != null) {
-//
-//                        if (response.equals(Protocol.PREFIX.ERR_LOG.toString())) {
-//                            this.client.clientSocket.close();
-//                            throw new LoginException();
-//                        }
-//                        else if (response.equals(Protocol.PREFIX.MESSAGE.toString())) {
-//                            System.out.println("ERROR Chatamu");
-//                        }
-//                        else if (response.equals(Protocol.PREFIX.DCNTD.toString())) {
-//                            this.client.clientSocket.close();
-//                            System.out.println(response);
-//                            System.exit(1);
-//                        }
-//                        else System.out.println("Je recois : " + response);
-//                        System.out.println("JE LIS");
-//                    }
-
-                    if (response.equals(Protocol.PREFIX.ERR_LOG.toString())) {
-                        this.client.clientSocket.close();
-                        throw new LoginException();
-                    }
-                    else if (response.equals(Protocol.PREFIX.MESSAGE.toString())) {
-                        System.out.println("ERROR Chatamu");
-                    }
-                    else if (response.equals(Protocol.PREFIX.DCNTD.toString())) {
-                        this.client.clientSocket.close();
-                        System.out.println(response);
-                        System.exit(1);
-                    }
-                    else System.out.println("Je recois : " + response);
                 }
             }
 
