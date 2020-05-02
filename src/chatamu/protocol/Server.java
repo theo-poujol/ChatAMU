@@ -58,7 +58,7 @@ public class Server {
                 if (key.isAcceptable()) {
                     SocketChannel clientSocket = this.ssc.accept();
                     clientSocket.configureBlocking(false);
-                    clientSocket.register(selector, SelectionKey.OP_READ);
+                    clientSocket.register(selector, SelectionKey.OP_WRITE | SelectionKey.OP_READ);
                 }
 
                 // Si une clé est prête à être lue alors on fait un nouveau channel correspondant à un nouveau client
