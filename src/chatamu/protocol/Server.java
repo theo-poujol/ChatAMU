@@ -135,7 +135,7 @@ public class Server {
 
                             else {
                                 System.out.println(formattedMsg);
-                                clientBuffer.flip();
+//                                clientBuffer.flip();
                                 clientBuffer = ByteBuffer.wrap((formattedMsg+(char)10).getBytes());
 
                                 addMsg2Queue(clientBuffer);
