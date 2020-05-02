@@ -14,11 +14,11 @@ public class ClientNIO {
     private InetSocketAddress clientAddr;
     private SocketChannel client;
 
-    public ClientNIO() throws IOException {
-        this.clientAddr = new InetSocketAddress("127.0.0.1",12345);
+    public ClientNIO(String address, int port) throws IOException {
+        this.clientAddr = new InetSocketAddress(address,port);
         this.client = SocketChannel.open(this.clientAddr);
 
-        System.out.println("Connexion à 127.0.0.1 au port 12345");
+        System.out.println("Connexion à " +  address + " au port " + port);
     }
 
 
@@ -39,7 +39,7 @@ public class ClientNIO {
         while (true) {
             String message = scanner.nextLine();
             if (message != null) {
-                byte[] messageByte = message.getBytes();
+                byte[] messageByte = (Protocol.PREFIX.MESSAGE.toString() + message).getBytes();
                 ByteBuffer buffer = ByteBuffer.wrap(messageByte);
                 this.client.write(buffer);
                 buffer.clear();
@@ -53,7 +53,8 @@ public class ClientNIO {
         System.out.println("Entrer un pseudo");
 
         Scanner scanner = new Scanner(System.in);
-        byte[] pseudo = scanner.nextLine().getBytes();
+
+        byte[] pseudo = (Protocol.PREFIX.LOGIN.toString() + scanner.nextLine()).getBytes();
         ByteBuffer buffer = ByteBuffer.wrap(pseudo);
         this.client.write(buffer);
         buffer.clear();
