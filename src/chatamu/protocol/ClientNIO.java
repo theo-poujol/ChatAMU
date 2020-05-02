@@ -18,7 +18,6 @@ public class ClientNIO {
     public ClientNIO(String address, int port) throws IOException {
         this.clientAddr = new InetSocketAddress(address,port);
         this.client = SocketChannel.open(this.clientAddr);
-        this.readBuffer = ByteBuffer.allocate(256);
         System.out.println("Connexion à " +  address + " au port " + port);
     }
 
@@ -31,7 +30,7 @@ public class ClientNIO {
 
 
     public void read() {
-        Thread thread = new Thread(new HandleReceiv(this.client, this.readBuffer));
+        Thread thread = new Thread(new HandleReceiv(this.client));
         thread.start();
     }
 
@@ -45,8 +44,6 @@ public class ClientNIO {
                 this.client.write(buffer);
                 buffer.clear();
             }
-            // Eviter le spam
-            Thread.sleep(2000);
         }
     }
 
@@ -65,12 +62,11 @@ public class ClientNIO {
     private final class HandleReceiv implements Runnable {
 
         SocketChannel client;
-        ByteBuffer readBuffer;
 
-        public HandleReceiv(SocketChannel socketChannel, ByteBuffer buffer) {
+        public HandleReceiv(SocketChannel socketChannel) {
 
             this.client = socketChannel;
-            this.readBuffer = buffer;
+
         }
 
         @Override
@@ -79,10 +75,9 @@ public class ClientNIO {
             try {
                 while (true) {
 
-                    this.readBuffer.clear();
-                    this.client.read(this.readBuffer);
-
-                    String message = new String(this.readBuffer.array()).trim();
+                    ByteBuffer buffer = ByteBuffer.allocate(1024);
+                    this.client.read(buffer);
+                    String message = new String(buffer.array()).trim();
 
                     if (message.equals(Protocol.PREFIX.ERR_LOG.toString())) {
                         this.client.close();
@@ -94,8 +89,8 @@ public class ClientNIO {
                     }
 
                     else if (message.equals(Protocol.PREFIX.DCNTD.toString())) {
-                        this.client.close();
                         System.out.println(message);
+                        this.client.close();
                         System.exit(1);
                     }
 
