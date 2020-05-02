@@ -75,12 +75,13 @@ public class ClientNIO {
 
         @Override
         public void run() {
-            //todo
+
             try {
                 while (true) {
 
                     this.readBuffer.clear();
                     this.client.read(this.readBuffer);
+
                     String message = new String(this.readBuffer.array()).trim();
 
                     if (message.equals(Protocol.PREFIX.ERR_LOG.toString())) {
