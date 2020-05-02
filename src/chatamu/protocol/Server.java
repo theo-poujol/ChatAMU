@@ -79,7 +79,9 @@ public class Server {
                                 if (this.namePool.contains(pseudo)) {
                                     String errorLoginMessage = Protocol.PREFIX.ERR_LOG.toString();
                                     ByteBuffer errorBuffer = ByteBuffer.wrap((errorLoginMessage+(char)10).getBytes());
+//                                    errorBuffer.flip();
                                     clientSocket.write(errorBuffer);
+//                                    errorBuffer.compact();
                                     clientSocket.close();
                                     break;
                                 }
@@ -90,6 +92,7 @@ public class Server {
                                     this.namePool.add(pseudo);
                                     clientBuffer.flip();
                                     clientSocket.write(clientBuffer);
+//                                    clientBuffer.compact();
 
                                     clientBuffer = ByteBuffer.wrap(("JOIN " + pseudo +(char)10).getBytes());
                                     addMsg2Queue(clientBuffer);
@@ -117,11 +120,14 @@ public class Server {
                                 this.namePool.remove(this.clientPool.get(clientSocket));
                                 this.clientPool.remove(clientSocket);
 
+//                                clientBuffer.flip();
                                 clientSocket.write(clientBuffer);
+//                                clientBuffer.compact();
                                 clientSocket.close();
 
                                 this.queue.remove(clientSocket);
 
+//                                clientBuffer.flip();
                                 clientBuffer = ByteBuffer.wrap(("QUIT " + pseudo +(char)10).getBytes());
                                 addMsg2Queue(clientBuffer);
                                 break;
@@ -129,7 +135,9 @@ public class Server {
 
                             else {
                                 System.out.println(formattedMsg);
+                                clientBuffer.flip();
                                 clientBuffer = ByteBuffer.wrap((formattedMsg+(char)10).getBytes());
+
                                 addMsg2Queue(clientBuffer);
                                 break;
                             }
@@ -199,13 +207,17 @@ public class Server {
                 if (!(this.Clientqueue.isEmpty())) {
                     for (ByteBuffer buffer : this.Clientqueue) {
                         try {
-                            System.out.println(this.client);
-                            this.client.write(buffer);
-                            System.out.println("SEND : " + new String(buffer.array()).trim());
+//                            buffer.flip();
+                            int i = this.client.write(buffer);
+//                            buffer.compact();
                             this.Clientqueue.remove(buffer);
+                            if (i == 0) {
+                                System.out.println("CEST 0 FRERO AYAAAAA");
+//                                return;
+                            }
+
 
                         } catch (IOException e) {
-                            System.out.println("JFEOEQOIJQEFOIQJFO");
                             e.printStackTrace();
                         }
                     }

@@ -41,8 +41,9 @@ public class ClientNIO {
             if (message != null) {
                 byte[] messageByte = (Protocol.PREFIX.MESSAGE.toString() + message).getBytes();
                 ByteBuffer buffer = ByteBuffer.wrap(messageByte);
+//                buffer.flip();
                 this.client.write(buffer);
-                buffer.clear();
+//                buffer.compact();
             }
         }
     }
@@ -54,8 +55,9 @@ public class ClientNIO {
 
         byte[] pseudo = (Protocol.PREFIX.LOGIN.toString() + scanner.nextLine()).getBytes();
         ByteBuffer buffer = ByteBuffer.wrap(pseudo);
+//        buffer.flip();
         this.client.write(buffer);
-        buffer.clear();
+//        buffer.compact();
     }
 
 
@@ -74,8 +76,8 @@ public class ClientNIO {
 
             try {
                 while (true) {
-
                     ByteBuffer buffer = ByteBuffer.allocate(1024);
+                    buffer.clear();
                     this.client.read(buffer);
                     String message = new String(buffer.array()).trim();
 
