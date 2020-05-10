@@ -2,7 +2,7 @@ package chatamu.protocol;
 
 import chatamu.exception.LoginException;
 
-import java.io.BufferedReader;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -13,7 +13,6 @@ public class ClientNIO {
 
     private InetSocketAddress clientAddr;
     private SocketChannel client;
-    private ByteBuffer readBuffer;
 
     public ClientNIO(String address, int port) throws IOException {
         this.clientAddr = new InetSocketAddress(address,port);
@@ -41,9 +40,7 @@ public class ClientNIO {
             if (message != null) {
                 byte[] messageByte = (Protocol.PREFIX.MESSAGE.toString() + message).getBytes();
                 ByteBuffer buffer = ByteBuffer.wrap(messageByte);
-//                buffer.flip();
                 this.client.write(buffer);
-//                buffer.compact();
             }
         }
     }
@@ -55,9 +52,7 @@ public class ClientNIO {
 
         byte[] pseudo = (Protocol.PREFIX.LOGIN.toString() + scanner.nextLine()).getBytes();
         ByteBuffer buffer = ByteBuffer.wrap(pseudo);
-//        buffer.flip();
         this.client.write(buffer);
-//        buffer.compact();
     }
 
 

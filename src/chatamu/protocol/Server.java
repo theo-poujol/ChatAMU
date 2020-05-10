@@ -1,9 +1,8 @@
 package chatamu.protocol;
 
-import java.io.Console;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.util.HashMap;
@@ -58,7 +57,7 @@ public class Server {
                 if (key.isAcceptable()) {
                     SocketChannel clientSocket = this.ssc.accept();
                     clientSocket.configureBlocking(false);
-                    clientSocket.register(selector, SelectionKey.OP_WRITE | SelectionKey.OP_READ);
+                    clientSocket.register(selector, SelectionKey.OP_READ);
                 }
 
                 // Si une clé est prête à être lue alors on fait un nouveau channel correspondant à un nouveau client
@@ -76,23 +75,21 @@ public class Server {
                         case "LOGIN":
                             String pseudo = parseContain(msg, command.length()+1);
                             if (this.clientPool.get(clientSocket) == null) {
+                                //s'il existe déjà un client connecté possedant ce pseudo
                                 if (this.namePool.contains(pseudo)) {
                                     String errorLoginMessage = Protocol.PREFIX.ERR_LOG.toString();
                                     ByteBuffer errorBuffer = ByteBuffer.wrap((errorLoginMessage+(char)10).getBytes());
-//                                    errorBuffer.flip();
                                     clientSocket.write(errorBuffer);
-//                                    errorBuffer.compact();
                                     clientSocket.close();
                                     break;
                                 }
-
+                                //attribution et stockage du pseudo
                                 else {
                                     System.out.println("JOIN " + pseudo);
                                     this.clientPool.put(clientSocket, pseudo);
                                     this.namePool.add(pseudo);
                                     clientBuffer.flip();
                                     clientSocket.write(clientBuffer);
-//                                    clientBuffer.compact();
 
                                     clientBuffer = ByteBuffer.wrap(("JOIN " + pseudo +(char)10).getBytes());
                                     addMsg2Queue(clientBuffer);
@@ -120,14 +117,11 @@ public class Server {
                                 this.namePool.remove(this.clientPool.get(clientSocket));
                                 this.clientPool.remove(clientSocket);
 
-//                                clientBuffer.flip();
                                 clientSocket.write(clientBuffer);
-//                                clientBuffer.compact();
                                 clientSocket.close();
 
                                 this.queue.remove(clientSocket);
 
-//                                clientBuffer.flip();
                                 clientBuffer = ByteBuffer.wrap(("QUIT " + pseudo +(char)10).getBytes());
                                 addMsg2Queue(clientBuffer);
                                 break;
@@ -135,9 +129,7 @@ public class Server {
 
                             else {
                                 System.out.println(formattedMsg);
-//                                clientBuffer.flip();
                                 clientBuffer = ByteBuffer.wrap((formattedMsg+(char)10).getBytes());
-
                                 addMsg2Queue(clientBuffer);
                                 break;
                             }
@@ -180,6 +172,7 @@ public class Server {
         return str.substring(index);
     }
 
+    // Ajoute le message en paramètre à toute les files d'attente des clients
     public void addMsg2Queue(ByteBuffer msgBuffer) throws InterruptedException {
         for (SocketChannel clients : this.queue.keySet()) {
             this.queue.get(clients).put(msgBuffer);
@@ -189,6 +182,7 @@ public class Server {
 
 
 
+    //Classe qui s'occupe de distribuer les messages contenus dans la file d'attente du client concerné (Thread donc une instance par client connecté)
     private class MessageCheck implements Runnable {
 
         private SocketChannel client;
@@ -207,14 +201,15 @@ public class Server {
                 if (!(this.Clientqueue.isEmpty())) {
                     for (ByteBuffer buffer : this.Clientqueue) {
                         try {
-//                            buffer.flip();
-                            int i = this.client.write(buffer);
-//                            buffer.compact();
-                            this.Clientqueue.remove(buffer);
-                            if (i == 0) {
-                                System.out.println("CEST 0 FRERO AYAAAAA");
-//                                return;
-                            }
+
+                                int i = this.client.write(buffer);
+                                while(i == 0)
+                                {
+                                   i = this.client.write(buffer);
+                                }
+                                this.Clientqueue.remove(buffer);
+
+
 
 
                         } catch (IOException e) {
